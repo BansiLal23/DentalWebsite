@@ -28,11 +28,17 @@ export default function Contact() {
 
           <div className="contact-map-wrap">
             <h3>Find Us</h3>
-            <div className="map-placeholder" aria-hidden="true">
-              <p>Google Map placeholder</p>
-              <p className="map-hint">
-                Replace this with your Google Map embed or link to your practice location.
-              </p>
+            <div className="map-container">
+              <iframe
+                title="Practice location"
+                src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d193595.25279947927!2d-74.11976373946234!3d40.69766374865766!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x89c24fa5d33f083b%3A0xc80b8f06e177fe62!2sNew+York%2C+NY%2C+USA!5e0!3m2!1sen!2sus!4v1708012800000"
+                width="100%"
+                height="280"
+                style={{ border: 0 }}
+                allowFullScreen
+                loading="lazy"
+                referrerPolicy="no-referrer-when-downgrade"
+              />
             </div>
           </div>
         </div>
@@ -55,21 +61,14 @@ export default function Contact() {
         .contact-info h3:first-child, .contact-map-wrap h3:first-child { margin-top: 0; }
         .contact-info p { margin-bottom: 0.25rem; color: var(--color-text-muted); }
         .contact-info a { color: var(--color-primary); }
-        .map-placeholder {
+        .map-container {
           margin-top: 0.5rem;
           min-height: 280px;
-          background: var(--color-bg);
-          border: 2px dashed #94a3b8;
           border-radius: var(--radius-lg);
-          display: flex;
-          flex-direction: column;
-          align-items: center;
-          justify-content: center;
-          color: var(--color-text-muted);
-          text-align: center;
-          padding: 2rem;
+          overflow: hidden;
+          background: var(--color-bg);
         }
-        .map-hint { font-size: 0.9rem; margin-top: 0.5rem; }
+        .map-container iframe { display: block; }
       `}</style>
     </div>
   )

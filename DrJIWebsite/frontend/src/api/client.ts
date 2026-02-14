@@ -1,6 +1,7 @@
 import type { Dentist, Service, AppointmentPayload } from '@/types';
 
-const API_BASE = '/api';
+// In production (e.g. Vercel), set VITE_API_URL to your backend API base (e.g. https://your-backend.com/api)
+const API_BASE = import.meta.env.VITE_API_URL ?? '/api';
 
 async function request<T>(
   endpoint: string,

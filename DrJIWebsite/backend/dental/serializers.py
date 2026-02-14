@@ -32,7 +32,7 @@ class AppointmentSerializer(serializers.ModelSerializer):
         model = Appointment
         fields = [
             'id', 'name', 'email', 'phone', 'service',
-            'preferred_date', 'message', 'created_at'
+            'preferred_date', 'preferred_time', 'message', 'created_at'
         ]
         read_only_fields = ['created_at']
 
@@ -45,3 +45,16 @@ class AppointmentSerializer(serializers.ModelSerializer):
         if not value or len(value.strip()) < 2:
             raise serializers.ValidationError('Name must be at least 2 characters.')
         return value.strip()
+
+    def validate_message(self, value):
+        if value and len(value) > 2000:
+            raise serializers.ValidationError('Message must be 2000 characters or fewer.')
+        return value or ''
+
+    def validate_preferred_date(self, value):
+        if value is None:
+            return value
+        from django.utils import timezone
+        if value < timezone.localdate():
+            raise serializers.ValidationError('Preferred date cannot be in the past.')
+        return value

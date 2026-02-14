@@ -18,7 +18,7 @@ class ServiceAdmin(admin.ModelAdmin):
 
 @admin.register(Appointment)
 class AppointmentAdmin(admin.ModelAdmin):
-    list_display = ('name', 'email', 'phone', 'service', 'preferred_date', 'created_at', 'is_confirmed')
+    list_display = ('name', 'email', 'phone', 'service', 'preferred_date', 'preferred_time', 'created_at', 'is_confirmed')
     list_filter = ('service', 'is_confirmed', 'created_at')
     search_fields = ('name', 'email', 'phone')
     list_editable = ('is_confirmed',)

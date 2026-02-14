@@ -27,9 +27,17 @@ export interface AppointmentPayload {
   email: string;
   phone: string;
   service: string;
-  preferred_date: string;
+  preferred_date?: string;
+  preferred_time?: string;
   message?: string;
 }
+
+export const PREFERRED_TIME_OPTIONS: { value: string; label: string }[] = [
+  { value: '', label: 'No preference' },
+  { value: 'morning', label: 'Morning (8 AM – 12 PM)' },
+  { value: 'afternoon', label: 'Afternoon (12 PM – 5 PM)' },
+  { value: 'evening', label: 'Evening (5 PM – 7 PM)' },
+];
 
 export const SERVICE_OPTIONS: { value: string; label: string }[] = [
   { value: 'general', label: 'General Dentistry' },

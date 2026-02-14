@@ -60,6 +60,13 @@ class Appointment(models.Model):
     phone = models.CharField(max_length=20)
     service = models.CharField(max_length=50, choices=SERVICE_CHOICES)
     preferred_date = models.DateField(null=True, blank=True)
+    PREFERRED_TIME_CHOICES = [
+        ('', 'No preference'),
+        ('morning', 'Morning (8 AM – 12 PM)'),
+        ('afternoon', 'Afternoon (12 PM – 5 PM)'),
+        ('evening', 'Evening (5 PM – 7 PM)'),
+    ]
+    preferred_time = models.CharField(max_length=20, choices=PREFERRED_TIME_CHOICES, default='', blank=True)
     message = models.TextField(blank=True)
     created_at = models.DateTimeField(auto_now_add=True)
     is_confirmed = models.BooleanField(default=False)

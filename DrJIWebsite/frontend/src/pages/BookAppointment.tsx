@@ -1,6 +1,8 @@
 import { useState, FormEvent } from 'react'
 import { api } from '@/api/client'
-import { SERVICE_OPTIONS } from '@/types'
+import { SERVICE_OPTIONS, PREFERRED_TIME_OPTIONS } from '@/types'
+
+const MAX_MESSAGE_LENGTH = 2000
 
 const initialForm = {
   name: '',
@@ -8,10 +10,11 @@ const initialForm = {
   phone: '',
   service: '',
   preferred_date: '',
+  preferred_time: '',
   message: '',
 }
 
-type FormErrors = Partial<Record<keyof typeof initialForm, string>>
+type FormErrors = Partial<Record<keyof typeof initialForm, string | undefined>>
 
 function validate(form: typeof initialForm): FormErrors {
   const errors: FormErrors = {}
@@ -22,6 +25,13 @@ function validate(form: typeof initialForm): FormErrors {
   if (!form.phone.trim()) errors.phone = 'Phone is required.'
   else if (form.phone.replace(/\D/g, '').length < 8) errors.phone = 'Please enter a valid phone number.'
   if (!form.service) errors.service = 'Please select a service.'
+  if (form.preferred_date) {
+    const d = new Date(form.preferred_date)
+    const today = new Date()
+    today.setHours(0, 0, 0, 0)
+    if (d < today) errors.preferred_date = 'Preferred date cannot be in the past.'
+  }
+  if (form.message.length > MAX_MESSAGE_LENGTH) errors.message = `Message must be ${MAX_MESSAGE_LENGTH} characters or fewer.`
   return errors
 }
 
@@ -55,6 +65,7 @@ export default function BookAppointment() {
         phone: form.phone.trim(),
         service: form.service,
         preferred_date: form.preferred_date || undefined,
+        preferred_time: form.preferred_time || undefined,
         message: form.message.trim() || undefined,
       })
       setSuccess(true)
@@ -166,7 +177,22 @@ export default function BookAppointment() {
               type="date"
               value={form.preferred_date}
               onChange={handleChange}
+              className={errors.preferred_date ? 'invalid' : ''}
             />
+            {errors.preferred_date && <span className="error">{errors.preferred_date}</span>}
+          </div>
+          <div className="input-group">
+            <label htmlFor="preferred_time">Preferred Time</label>
+            <select
+              id="preferred_time"
+              name="preferred_time"
+              value={form.preferred_time}
+              onChange={handleChange}
+            >
+              {PREFERRED_TIME_OPTIONS.map((opt) => (
+                <option key={opt.value || 'none'} value={opt.value}>{opt.label}</option>
+              ))}
+            </select>
           </div>
           <div className="input-group">
             <label htmlFor="message">Message</label>
@@ -176,7 +202,11 @@ export default function BookAppointment() {
               value={form.message}
               onChange={handleChange}
               placeholder="Any special requests or notes..."
+              maxLength={MAX_MESSAGE_LENGTH}
+              className={errors.message ? 'invalid' : ''}
             />
+            <span className="char-hint">{form.message.length} / {MAX_MESSAGE_LENGTH}</span>
+            {errors.message && <span className="error">{errors.message}</span>}
           </div>
           <button type="submit" className="btn btn-primary" disabled={submitting}>
             {submitting ? 'Sending...' : 'Submit Request'}
@@ -193,6 +223,11 @@ export default function BookAppointment() {
           color: #dc2626;
           border-radius: var(--radius);
           margin-bottom: 1rem;
+        }
+        .char-hint {
+          font-size: 0.85rem;
+          color: var(--color-text-muted);
+          margin-top: 0.25rem;
         }
       `}</style>
     </div>
