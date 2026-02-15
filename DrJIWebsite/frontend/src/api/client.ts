@@ -18,7 +18,10 @@ async function request<T>(
 
   if (!res.ok) {
     const err = await res.json().catch(() => ({ detail: res.statusText }));
-    throw new Error(err.detail || err.message || JSON.stringify(err) || res.statusText);
+    const msg = err.detail || err.message;
+    // Avoid showing raw JSON (e.g. {"detail":""}) when API is unavailable
+    const fallback = res.status === 404 ? 'Service unavailable. Connect a backend or check VITE_API_URL.' : res.statusText;
+    throw new Error((typeof msg === 'string' && msg.trim()) ? msg : fallback);
   }
 
   if (res.status === 204) return undefined as T;
