@@ -1,11 +1,10 @@
 import { useState, FormEvent } from 'react'
-import { Link, useNavigate } from 'react-router-dom'
+import { Link } from 'react-router-dom'
 import { api } from '@/api/client'
 
 const PASSWORD_HINT = 'Min 8 characters, one uppercase, one lowercase, one digit, one special character.'
 
 export default function SignUp() {
-  const navigate = useNavigate()
   const [name, setName] = useState('')
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')

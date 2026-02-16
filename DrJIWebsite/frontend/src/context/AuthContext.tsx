@@ -10,7 +10,12 @@ const AuthContext = createContext<{
 }>({ user: null, setUser: () => {}, logout: () => {} })
 
 export function AuthProvider({ children }: { children: React.ReactNode }) {
-  const [user, setUserState] = useState<User>(() => getStoredToken() && getStoredUser())
+  const [user, setUserState] = useState<User>(() => {
+    const token = getStoredToken()
+    const u = getStoredUser()
+    if (!token || !u || typeof u !== 'object' || !('id' in u) || !('email' in u)) return null
+    return u as User
+  })
 
   const setUser = useCallback((u: User) => {
     setUserState(u)
@@ -23,7 +28,11 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   }, [])
 
   useEffect(() => {
-    const sync = () => setUserState(getStoredToken() && getStoredUser() ? getStoredUser() : null)
+    const sync = () => {
+      const token = getStoredToken()
+      const u = getStoredUser()
+      setUserState(token && u && typeof u === 'object' && 'id' in u && 'email' in u ? (u as User) : null)
+    }
     window.addEventListener('storage', sync)
     return () => window.removeEventListener('storage', sync)
   }, [])

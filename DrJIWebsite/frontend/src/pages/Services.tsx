@@ -21,7 +21,7 @@ const FALLBACK_SERVICES: Service[] = SERVICE_OPTIONS.map((opt, i) => ({
 export default function Services() {
   const [services, setServices] = useState<Service[]>([])
   const [loading, setLoading] = useState(true)
-  const [error, setError] = useState<string | null>(null)
+  const [, setError] = useState<string | null>(null)
   const [usedFallback, setUsedFallback] = useState(false)
 
   useEffect(() => {
