@@ -7,8 +7,16 @@ User = get_user_model()
 
 
 class SignUpSerializer(serializers.Serializer):
+    name = serializers.CharField(write_only=True, min_length=2, max_length=150)
     email = serializers.EmailField(write_only=True)
     password = serializers.CharField(write_only=True, min_length=8, style={'input_type': 'password'})
+    confirm_password = serializers.CharField(write_only=True, style={'input_type': 'password'})
+
+    def validate_name(self, value):
+        name = value.strip()
+        if len(name) < 2:
+            raise serializers.ValidationError('Name must be at least 2 characters.')
+        return name
 
     def validate_email(self, value):
         value = value.strip().lower()
@@ -20,13 +28,20 @@ class SignUpSerializer(serializers.Serializer):
         validate_strong_password(value)
         return value
 
+    def validate(self, data):
+        if data['password'] != data['confirm_password']:
+            raise serializers.ValidationError({'confirm_password': 'Passwords do not match.'})
+        return data
+
     def create(self, validated_data):
         email = validated_data['email'].lower()
         password = validated_data['password']
+        name = validated_data['name'].strip()
         user = User.objects.create_user(
             username=email,
             email=email,
             password=password,
+            first_name=name,
             is_active=False,
             is_staff=False,
         )
