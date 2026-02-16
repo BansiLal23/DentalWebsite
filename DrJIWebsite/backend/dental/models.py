@@ -1,3 +1,4 @@
+from django.conf import settings
 from django.db import models
 
 
@@ -70,6 +71,14 @@ class Appointment(models.Model):
     message = models.TextField(blank=True)
     created_at = models.DateTimeField(auto_now_add=True)
     is_confirmed = models.BooleanField(default=False)
+    # Link to customer account when booked while signed in (single dentist clinic)
+    customer = models.ForeignKey(
+        settings.AUTH_USER_MODEL,
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name='appointments',
+    )
 
     class Meta:
         ordering = ['-created_at']

@@ -59,7 +59,9 @@ class AppointmentViewSet(viewsets.GenericViewSet):
     def create(self, request):
         serializer = AppointmentSerializer(data=request.data)
         if serializer.is_valid():
-            appointment = serializer.save()
+            appointment = serializer.save(
+                customer=request.user if request.user.is_authenticated else None
+            )
             send_appointment_notification(appointment)
             return Response(serializer.data, status=status.HTTP_201_CREATED)
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)

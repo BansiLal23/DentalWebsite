@@ -32,9 +32,9 @@ class AppointmentSerializer(serializers.ModelSerializer):
         model = Appointment
         fields = [
             'id', 'name', 'email', 'phone', 'service',
-            'preferred_date', 'preferred_time', 'message', 'created_at'
+            'preferred_date', 'preferred_time', 'message', 'created_at', 'customer'
         ]
-        read_only_fields = ['created_at']
+        read_only_fields = ['created_at', 'customer']
 
     def validate_phone(self, value):
         if not value or len(value.strip()) < 8:
