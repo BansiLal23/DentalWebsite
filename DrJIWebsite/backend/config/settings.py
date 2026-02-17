@@ -6,6 +6,10 @@ from pathlib import Path
 
 BASE_DIR = Path(__file__).resolve().parent.parent
 
+# Load .env from backend folder (not committed; use for EMAIL_* etc.)
+from dotenv import load_dotenv
+load_dotenv(BASE_DIR / '.env')
+
 SECRET_KEY = os.environ.get('DJANGO_SECRET_KEY', 'dev-secret-key-change-in-production')
 
 DEBUG = os.environ.get('DEBUG', 'True').lower() == 'true'
