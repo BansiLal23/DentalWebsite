@@ -1,0 +1,240 @@
+{
+  "info": {
+    "name": "Dr. JI Dental API",
+    "description": "All APIs for testing. Set base_url if your server runs elsewhere.",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "variable": [
+    {
+      "key": "base_url",
+      "value": "http://127.0.0.1:8000"
+    },
+    {
+      "key": "access_token",
+      "value": ""
+    },
+    {
+      "key": "refresh_token",
+      "value": ""
+    }
+  ],
+  "item": [
+    {
+      "name": "1. Health",
+      "item": [
+        {
+          "name": "Backend health",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": "{{base_url}}/",
+            "description": "Check if backend is running. Expect 200 + JSON."
+          }
+        }
+      ]
+    },
+    {
+      "name": "2. Auth",
+      "item": [
+        {
+          "name": "Sign up",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"Test Patient\",\n  \"email\": \"patient@example.com\",\n  \"password\": \"SecurePass1!\",\n  \"confirm_password\": \"SecurePass1!\"\n}"
+            },
+            "url": "{{base_url}}/api/auth/signup/",
+            "description": "Creates account, sends OTP to email. Use real email to get OTP."
+          }
+        },
+        {
+          "name": "Verify email",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"email\": \"patient@example.com\",\n  \"otp\": \"123456\"\n}"
+            },
+            "url": "{{base_url}}/api/auth/verify-email/",
+            "description": "Replace otp with code from email. Activates account."
+          }
+        },
+        {
+          "name": "Login",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"email\": \"patient@example.com\",\n  \"password\": \"SecurePass1!\"\n}"
+            },
+            "url": "{{base_url}}/api/auth/login/",
+            "description": "Returns access + refresh tokens. Copy access token for Booking with auth."
+          }
+        },
+        {
+          "name": "Token refresh",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"refresh\": \"{{refresh_token}}\"\n}"
+            },
+            "url": "{{base_url}}/api/auth/token/refresh/",
+            "description": "Paste refresh token from Login response. Get new access token."
+          }
+        },
+        {
+          "name": "Forgot password",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"email\": \"patient@example.com\"\n}"
+            },
+            "url": "{{base_url}}/api/auth/forgot-password/",
+            "description": "Sends OTP to email. Use that OTP in Reset password."
+          }
+        },
+        {
+          "name": "Reset password",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"email\": \"patient@example.com\",\n  \"otp\": \"123456\",\n  \"new_password\": \"NewSecure1!\"\n}"
+            },
+            "url": "{{base_url}}/api/auth/reset-password/",
+            "description": "Use OTP from Forgot password. new_password must match rules (8+ chars, upper, lower, digit, special)."
+          }
+        }
+      ]
+    },
+    {
+      "name": "3. Dental",
+      "item": [
+        {
+          "name": "List dentists",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": "{{base_url}}/api/dentists/",
+            "description": "No body. Returns array of dentists."
+          }
+        },
+        {
+          "name": "Get dentist by id",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": "{{base_url}}/api/dentists/1/",
+            "description": "Change 1 to another id if needed."
+          }
+        },
+        {
+          "name": "List services",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": "{{base_url}}/api/services/",
+            "description": "No body. Returns array of active services."
+          }
+        },
+        {
+          "name": "Get service by slug",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": "{{base_url}}/api/services/general/",
+            "description": "Slug: general, cleaning, root_canal, extraction, implants, orthodontics, whitening, cosmetic, pediatric, gum_treatment."
+          }
+        },
+        {
+          "name": "Get available slots",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": "{{base_url}}/api/appointments/available-slots/?date=2026-03-15",
+            "description": "Returns free time slots for the given date (YYYY-MM-DD). Use a future date. Response data is array of { time: \"09:00\", label: \"9:00 AM\" }."
+          }
+        },
+        {
+          "name": "Book appointment (no auth)",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"Test Patient\",\n  \"email\": \"patient@example.com\",\n  \"phone\": \"5551234567\",\n  \"service\": \"general\",\n  \"preferred_date\": \"2026-03-15\",\n  \"slot_time\": \"09:00\",\n  \"message\": \"First visit.\"\n}"
+            },
+            "url": "{{base_url}}/api/appointments/",
+            "description": "Book a slot. preferred_date (YYYY-MM-DD) and slot_time (HH:MM, e.g. 09:00) must be from available-slots. Full details are emailed to APPOINTMENT_NOTIFY_EMAILS."
+          }
+        },
+        {
+          "name": "Book appointment (with auth)",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{access_token}}"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"Test Patient\",\n  \"email\": \"patient@example.com\",\n  \"phone\": \"5551234567\",\n  \"service\": \"general\",\n  \"preferred_date\": \"2026-03-15\",\n  \"slot_time\": \"09:00\",\n  \"message\": \"First visit.\"\n}"
+            },
+            "url": "{{base_url}}/api/appointments/",
+            "description": "Same as above with Authorization header. Links booking to customer account."
+          }
+        }
+      ]
+    }
+  ]
+}

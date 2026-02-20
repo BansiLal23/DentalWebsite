@@ -1,4 +1,4 @@
-import type { Dentist, Service, AppointmentPayload } from '@/types';
+import type { Dentist, Service, AppointmentPayload, TimeSlot } from '@/types';
 
 // In production (e.g. Vercel), set VITE_API_URL to your backend API base (e.g. https://your-backend.com/api)
 const API_BASE = import.meta.env.VITE_API_URL ?? '/api';
@@ -44,19 +44,16 @@ async function request<T>(
   const res = await fetch(url, { ...options, headers });
 
   if (!res.ok) {
-    const err = await res.json().catch(() => ({ detail: res.statusText }));
-    let msg = err.detail || err.message;
-    if (typeof msg !== 'string' && typeof err === 'object' && err !== null) {
-      const firstKey = Object.keys(err)[0];
-      const firstVal = firstKey ? (err as Record<string, unknown>)[firstKey] : null;
-      msg = Array.isArray(firstVal) ? firstVal[0] : firstVal;
-    }
+    const err = await res.json().catch(() => ({ message: res.statusText }));
+    const msg = err.message || err.detail;
     const fallback = res.status === 404 ? 'Service unavailable. Connect a backend or check VITE_API_URL.' : res.statusText;
     throw new Error((typeof msg === 'string' && msg.trim()) ? msg : fallback);
   }
 
   if (res.status === 204) return undefined as T;
-  return res.json();
+  const json = await res.json();
+  if (json && json.success === true && 'data' in json) return json.data as T;
+  return json as T;
 }
 
 export const api = {
@@ -88,6 +85,8 @@ export const api = {
   },
 
   appointments: {
+    getAvailableSlots: (date: string) =>
+      api.get<TimeSlot[]>(`/appointments/available-slots/?date=${encodeURIComponent(date)}`),
     create: (data: AppointmentPayload) =>
       api.post<AppointmentPayload>('/appointments/', data),
   },

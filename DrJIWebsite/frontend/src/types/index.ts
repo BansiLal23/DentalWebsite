@@ -22,12 +22,18 @@ export interface Service {
   order: number;
 }
 
+export interface TimeSlot {
+  time: string;   // "09:00"
+  label: string;  // "9:00 AM"
+}
+
 export interface AppointmentPayload {
   name: string;
   email: string;
   phone: string;
   service: string;
-  preferred_date?: string;
+  preferred_date: string;  // YYYY-MM-DD (required when booking a slot)
+  slot_time: string;       // "09:00" (required when booking)
   preferred_time?: string;
   message?: string;
 }

@@ -51,7 +51,7 @@ You should get **201** and a message like "Verification code sent to your email.
 3. Use **Body → raw → JSON** for all POST bodies below.
 
 ---
-
+h
 ## Step 1 – Check backend is running
 
 **Request:**  
@@ -216,7 +216,21 @@ Use the `refresh` token from Step 4.
 
 ---
 
-## Step 8 – Book appointment
+## Step 8 – Get available slots (then book)
+
+**Request:**  
+**GET** `http://127.0.0.1:8000/api/appointments/available-slots/?date=2026-03-15`
+
+Use a **future** date in `YYYY-MM-DD` format. Change the `date` query parameter to the day you want to book.
+
+**What to expect:**  
+- Status **200**.  
+- Response has `success: true` and `data`: an array of available slots, e.g. `[{ "time": "09:00", "label": "9:00 AM" }, ...]`.  
+- Use one of these `time` values when booking in the next step.
+
+---
+
+## Step 9 – Book appointment
 
 **Request:**  
 **POST** `http://127.0.0.1:8000/api/appointments/`
@@ -226,44 +240,35 @@ Use the `refresh` token from Step 4.
 - **Optional (if logged in):** `Authorization: Bearer PASTE_ACCESS_TOKEN_FROM_STEP_4`  
   If you send this, the appointment will be linked to that customer.
 
-**Body (raw JSON) – minimal (required fields only):**
+**Body (raw JSON) – required: name, email, phone, service, preferred_date, slot_time:**
 ```json
 {
   "name": "Test Patient",
   "email": "patient@example.com",
   "phone": "5551234567",
-  "service": "general"
+  "service": "general",
+  "preferred_date": "2026-03-15",
+  "slot_time": "09:00",
+  "message": "First visit."
 }
 ```
 
-**Body (raw JSON) – full (with optional fields):**
-```json
-{
-  "name": "Test Patient",
-  "email": "patient@example.com",
-  "phone": "5551234567",
-  "service": "cleaning",
-  "preferred_date": "2026-03-15",
-  "preferred_time": "morning",
-  "message": "First visit, need cleaning."
-}
-```
+- `preferred_date`: date in `YYYY-MM-DD` (must be today or future).  
+- `slot_time`: time from **available-slots** (e.g. `09:00`, `09:30`). If the slot is already taken, you get a validation error.
 
 **Valid `service` values:**  
 `general`, `cleaning`, `root_canal`, `extraction`, `implants`, `orthodontics`, `whitening`, `cosmetic`, `pediatric`, `gum_treatment`
 
-**Valid `preferred_time` values:**  
-`""` (no preference), `morning`, `afternoon`, `evening`
-
 **What to expect:**  
 - Status **201**.  
-- JSON of the created appointment (id, name, email, phone, service, preferred_date, preferred_time, message, created_at, customer if you sent the token).
+- JSON of the created appointment.  
+- An email with **full appointment details** is sent to the addresses in `APPOINTMENT_NOTIFY_EMAILS` (see backend `.env`).
 
-**Why:** This is the main “book appointment” API; it works with or without a logged-in user.
+**Why:** Slot-based booking: user picks a free slot; booking that slot sends full details to the clinic email.
 
 ---
 
-## Step 9 – Forgot password (request reset code)
+## Step 10 – Forgot password (request reset code)
 
 **Request:**  
 **POST** `http://127.0.0.1:8000/api/auth/forgot-password/`
@@ -281,13 +286,13 @@ Use the `refresh` token from Step 4.
 **What to expect:**  
 - Status **200**.  
 - Response: `{ "detail": "Password reset code sent to your email. Valid for 5 minutes." }`  
-- OTP again in **terminal** (or email). Copy it for Step 10.
+- OTP again in **terminal** (or email). Copy it for Step 11.
 
 **Why:** Starts the “forgot password” flow; next step is reset with OTP + new password.
 
 ---
 
-## Step 10 – Reset password (with OTP)
+## Step 11 – Reset password (with OTP)
 
 **Request:**  
 **POST** `http://127.0.0.1:8000/api/auth/reset-password/`
@@ -296,7 +301,7 @@ Use the `refresh` token from Step 4.
 `Content-Type: application/json`
 
 **Body (raw JSON):**  
-Replace `123456` with the OTP from Step 9. New password must match rules (8+ chars, upper, lower, digit, special).
+Replace `123456` with the OTP from Step 10. New password must match rules (8+ chars, upper, lower, digit, special).
 ```json
 {
   "email": "patient@example.com",
@@ -325,9 +330,10 @@ Replace `123456` with the OTP from Step 9. New password must match rules (8+ cha
 | 5 | Refresh token          | POST   | `http://127.0.0.1:8000/api/auth/token/refresh/` |
 | 6 | List dentists          | GET    | `http://127.0.0.1:8000/api/dentists/` |
 | 7 | List services          | GET    | `http://127.0.0.1:8000/api/services/` |
-| 8 | Book appointment       | POST   | `http://127.0.0.1:8000/api/appointments/` |
-| 9 | Forgot password        | POST   | `http://127.0.0.1:8000/api/auth/forgot-password/` |
-|10 | Reset password         | POST   | `http://127.0.0.1:8000/api/auth/reset-password/` |
+| 8 | Get available slots    | GET    | `http://127.0.0.1:8000/api/appointments/available-slots/?date=YYYY-MM-DD` |
+| 9 | Book appointment       | POST   | `http://127.0.0.1:8000/api/appointments/` |
+|10 | Forgot password        | POST   | `http://127.0.0.1:8000/api/auth/forgot-password/` |
+|11 | Reset password         | POST   | `http://127.0.0.1:8000/api/auth/reset-password/` |
 
 **Optional:**  
 - **GET** `http://127.0.0.1:8000/api/dentists/1/` – one dentist by id  
@@ -342,7 +348,7 @@ Replace `123456` with the OTP from Step 9. New password must match rules (8+ cha
 3. **3** – Verify email with OTP from terminal/email.  
 4. **4** – Login and copy `access` token.  
 5. **6, 7** – List dentists and services (no auth).  
-6. **8** – Book appointment once without `Authorization`, once with `Authorization: Bearer <access>` to see the difference (customer link).  
+6. **8** – Get available slots for a future date, then **9** – Book appointment (use a slot from step 8). Optionally send `Authorization: Bearer <access>` to link to customer.  
 7. **9, 10** – Test forgot password → reset password, then login again with the new password.
 
 This order matches how a real user would: sign up → verify → login → use the site (and optionally reset password).

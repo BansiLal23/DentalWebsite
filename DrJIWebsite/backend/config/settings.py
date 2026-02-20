@@ -100,6 +100,7 @@ REST_FRAMEWORK = {
     'DEFAULT_AUTHENTICATION_CLASSES': [
         'rest_framework_simplejwt.authentication.JWTAuthentication',
     ],
+    'EXCEPTION_HANDLER': 'config.utils.exception_handler',
 }
 
 # JWT (customer sign-in)
@@ -119,6 +120,16 @@ DEFAULT_FROM_EMAIL = os.environ.get('DEFAULT_FROM_EMAIL', 'noreply@drjidental.co
 APPOINTMENT_NOTIFY_EMAILS = [
     e.strip() for e in os.environ.get('APPOINTMENT_NOTIFY_EMAILS', 'info@drjidental.com').split(',') if e.strip()
 ]
+# Slot-based booking: working hours and slot duration (minutes)
+APPOINTMENT_SLOT_START_HOUR = int(os.environ.get('APPOINTMENT_SLOT_START_HOUR', '9'))
+APPOINTMENT_SLOT_END_HOUR = int(os.environ.get('APPOINTMENT_SLOT_END_HOUR', '17'))
+APPOINTMENT_SLOT_DURATION_MINUTES = int(os.environ.get('APPOINTMENT_SLOT_DURATION_MINUTES', '30'))
+
+# Google Calendar (optional): sync slots and create events. Use service account JSON path.
+GOOGLE_CALENDAR_ID = os.environ.get('GOOGLE_CALENDAR_ID', '')
+_google_creds = os.environ.get('GOOGLE_APPLICATION_CREDENTIALS', '')
+GOOGLE_APPLICATION_CREDENTIALS = str(BASE_DIR / _google_creds) if _google_creds and not os.path.isabs(_google_creds) else _google_creds
+
 EMAIL_HOST = os.environ.get('EMAIL_HOST', 'smtp.gmail.com')
 EMAIL_PORT = int(os.environ.get('EMAIL_PORT', '587'))
 EMAIL_USE_TLS = os.environ.get('EMAIL_USE_TLS', 'true').lower() == 'true'

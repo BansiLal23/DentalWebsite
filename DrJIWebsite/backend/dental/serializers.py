@@ -32,7 +32,7 @@ class AppointmentSerializer(serializers.ModelSerializer):
         model = Appointment
         fields = [
             'id', 'name', 'email', 'phone', 'service',
-            'preferred_date', 'preferred_time', 'message', 'created_at', 'customer'
+            'preferred_date', 'slot_time', 'preferred_time', 'message', 'created_at', 'customer'
         ]
         read_only_fields = ['created_at', 'customer']
 
@@ -58,3 +58,31 @@ class AppointmentSerializer(serializers.ModelSerializer):
         if value < timezone.localdate():
             raise serializers.ValidationError('Preferred date cannot be in the past.')
         return value
+
+    def validate_slot_time(self, value):
+        if value is None:
+            return value
+        from datetime import time
+        from django.conf import settings
+        start_h = getattr(settings, 'APPOINTMENT_SLOT_START_HOUR', 9)
+        end_h = getattr(settings, 'APPOINTMENT_SLOT_END_HOUR', 17)
+        slot_min = getattr(settings, 'APPOINTMENT_SLOT_DURATION_MINUTES', 30)
+        # Check value is on a valid slot boundary
+        total_minutes = value.hour * 60 + value.minute
+        start_minutes = start_h * 60
+        end_minutes = end_h * 60
+        if total_minutes < start_minutes or total_minutes >= end_minutes:
+            raise serializers.ValidationError('Selected time is outside working hours.')
+        if (total_minutes - start_minutes) % slot_min != 0:
+            raise serializers.ValidationError('Invalid slot time.')
+        return value
+
+    def validate(self, attrs):
+        preferred_date = attrs.get('preferred_date')
+        slot_time = attrs.get('slot_time')
+        if preferred_date and slot_time:
+            if Appointment.objects.filter(preferred_date=preferred_date, slot_time=slot_time).exists():
+                raise serializers.ValidationError(
+                    {'slot_time': 'This slot is no longer available. Please choose another.'}
+                )
+        return attrs

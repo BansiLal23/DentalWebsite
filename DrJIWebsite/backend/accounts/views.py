@@ -1,11 +1,10 @@
 from django.contrib.auth import get_user_model
 from rest_framework import status
 from rest_framework.permissions import AllowAny
-from rest_framework.response import Response
 from rest_framework.views import APIView
 from rest_framework_simplejwt.tokens import RefreshToken
-from rest_framework_simplejwt.views import TokenObtainPairView
 
+from config.utils import success_response, error_response
 from .models import OTP
 from .serializers import (
     SignUpSerializer,
@@ -41,9 +40,10 @@ class SignUpView(APIView):
         user = serializer.save()
         otp_record = OTP.create_otp(user.email, OTP.PURPOSE_SIGNUP)
         send_otp_email(user.email, otp_record.otp_code, OTP.PURPOSE_SIGNUP)
-        return Response(
-            {'detail': 'Verification code sent to your email. Please verify within 5 minutes.'},
-            status=status.HTTP_201_CREATED,
+        return success_response(
+            data={'email': user.email},
+            message='Verification code sent to your email. Please verify within 5 minutes.',
+            status_code=status.HTTP_201_CREATED,
         )
 
 
@@ -59,7 +59,10 @@ class VerifyEmailView(APIView):
         user.is_active = True
         user.save(update_fields=['is_active'])
         otp_record.delete()
-        return Response({'detail': 'Email verified. You can now sign in.'}, status=status.HTTP_200_OK)
+        return success_response(
+            data={'email': user.email},
+            message='Email verified. You can now sign in.',
+        )
 
 
 class LoginView(APIView):
@@ -73,22 +76,13 @@ class LoginView(APIView):
         password = serializer.validated_data['password']
         user = User.objects.filter(email__iexact=email).first()
         if not user or not user.check_password(password):
-            return Response(
-                {'detail': 'Invalid email or password.'},
-                status=status.HTTP_401_UNAUTHORIZED,
-            )
+            return error_response('Invalid email or password.', status_code=status.HTTP_401_UNAUTHORIZED)
         if not user.is_active:
-            return Response(
-                {'detail': 'Please verify your email before signing in.'},
-                status=status.HTTP_403_FORBIDDEN,
-            )
+            return error_response('Please verify your email before signing in.', status_code=status.HTTP_403_FORBIDDEN)
         if user.is_staff:
-            return Response(
-                {'detail': 'Use the admin site to sign in as staff.'},
-                status=status.HTTP_403_FORBIDDEN,
-            )
+            return error_response('Use the admin site to sign in as staff.', status_code=status.HTTP_403_FORBIDDEN)
         tokens = get_tokens_for_user(user)
-        return Response(tokens, status=status.HTTP_200_OK)
+        return success_response(data=tokens, message='Sign in successful.')
 
 
 class ForgotPasswordView(APIView):
@@ -101,9 +95,9 @@ class ForgotPasswordView(APIView):
         email = serializer.validated_data['email']
         otp_record = OTP.create_otp(email, OTP.PURPOSE_FORGOT_PASSWORD)
         send_otp_email(email, otp_record.otp_code, OTP.PURPOSE_FORGOT_PASSWORD)
-        return Response(
-            {'detail': 'Password reset code sent to your email. Valid for 5 minutes.'},
-            status=status.HTTP_200_OK,
+        return success_response(
+            data={'email': email},
+            message='Password reset code sent to your email. Valid for 5 minutes.',
         )
 
 
@@ -121,4 +115,7 @@ class ResetPasswordView(APIView):
         user.set_password(new_password)
         user.save(update_fields=['password'])
         otp_record.delete()
-        return Response({'detail': 'Password reset successfully. You can now sign in.'}, status=status.HTTP_200_OK)
+        return success_response(
+            data={'email': email},
+            message='Password reset successfully. You can now sign in.',
+        )

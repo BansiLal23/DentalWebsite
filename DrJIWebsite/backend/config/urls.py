@@ -3,12 +3,15 @@ from django.http import JsonResponse
 from django.urls import path, include
 
 def api_root(request):
-    """Root URL: confirm backend is running and point to API."""
+    """Root URL: standard response format."""
     return JsonResponse({
-        'message': 'Dr. JI Dental API is running.',
-        'docs': '/api/',
-        'admin': '/admin/',
-        'auth': '/api/auth/',
+        'success': True,
+        'data': {
+            'message': 'Dr. JI Dental API is running.',
+            'docs': '/api/',
+            'admin': '/admin/',
+            'auth': '/api/auth/',
+        },
     })
 
 urlpatterns = [

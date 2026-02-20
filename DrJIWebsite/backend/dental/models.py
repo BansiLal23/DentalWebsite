@@ -61,6 +61,7 @@ class Appointment(models.Model):
     phone = models.CharField(max_length=20)
     service = models.CharField(max_length=50, choices=SERVICE_CHOICES)
     preferred_date = models.DateField(null=True, blank=True)
+    slot_time = models.TimeField(null=True, blank=True, help_text='Booked time slot e.g. 09:00')
     PREFERRED_TIME_CHOICES = [
         ('', 'No preference'),
         ('morning', 'Morning (8 AM – 12 PM)'),
