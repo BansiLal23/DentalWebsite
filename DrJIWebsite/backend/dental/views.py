@@ -109,7 +109,10 @@ class AppointmentViewSet(viewsets.GenericViewSet):
         except ValueError:
             return error_response('Invalid date format. Use YYYY-MM-DD.', status_code=status.HTTP_400_BAD_REQUEST)
         if dt < timezone.localdate():
-            return success_response(data=[], message='No slots for past dates.')
+            return error_response(
+                'Please select today or a future date. Slots are not available for past dates.',
+                status_code=status.HTTP_400_BAD_REQUEST,
+            )
         slots = get_available_slots_for_date(dt)
         return success_response(data=slots, message='Available slots retrieved.')
 

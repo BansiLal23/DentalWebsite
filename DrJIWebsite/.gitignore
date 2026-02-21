@@ -8,6 +8,10 @@ venv/
 env/
 .env
 *.sqlite3
+# Google Calendar service account (never commit)
+**/google-credentials.json
+**/credentials.json
+**/*-credentials.json
 db.sqlite3
 media/
 

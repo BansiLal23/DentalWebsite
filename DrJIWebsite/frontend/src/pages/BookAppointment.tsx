@@ -71,6 +71,8 @@ export default function BookAppointment() {
   const [selectedDate, setSelectedDate] = useState<string | null>(null)
   const [availableSlots, setAvailableSlots] = useState<TimeSlot[]>([])
   const [slotsLoading, setSlotsLoading] = useState(false)
+  const [slotsError, setSlotsError] = useState<string | null>(null)
+  const [slotsFetchKey, setSlotsFetchKey] = useState(0)
   const [selectedSlot, setSelectedSlot] = useState<string | null>(null)
 
   const now = new Date()
@@ -81,15 +83,23 @@ export default function BookAppointment() {
     if (!selectedDate) {
       setAvailableSlots([])
       setSelectedSlot(null)
+      setSlotsError(null)
       return
     }
     setSlotsLoading(true)
+    setSlotsError(null)
     setSelectedSlot(null)
     api.appointments.getAvailableSlots(selectedDate)
-      .then(setAvailableSlots)
-      .catch(() => setAvailableSlots([]))
+      .then((slots) => {
+        setAvailableSlots(slots)
+        setSlotsError(null)
+      })
+      .catch((err) => {
+        setAvailableSlots([])
+        setSlotsError(err instanceof Error ? err.message : 'Could not load slots. Check that the backend is running and try again.')
+      })
       .finally(() => setSlotsLoading(false))
-  }, [selectedDate])
+  }, [selectedDate, slotsFetchKey])
 
   const handleCalendarSelect = (year: number, month: number, day: number) => {
     if (isPast(year, month, day)) return
@@ -248,10 +258,18 @@ export default function BookAppointment() {
             {selectedDate && slotsLoading && (
               <p className="slots-hint">Loading slots…</p>
             )}
-            {selectedDate && !slotsLoading && availableSlots.length === 0 && (
+            {selectedDate && slotsError && (
+              <div className="slots-error">
+                <p>{slotsError}</p>
+                <button type="button" className="btn btn-secondary slots-retry-btn" onClick={() => setSlotsFetchKey((k) => k + 1)}>
+                  Try again
+                </button>
+              </div>
+            )}
+            {selectedDate && !slotsLoading && !slotsError && availableSlots.length === 0 && (
               <p className="slots-hint">No available slots for this date. Try another date.</p>
             )}
-            {selectedDate && !slotsLoading && availableSlots.length > 0 && (
+            {selectedDate && !slotsLoading && !slotsError && availableSlots.length > 0 && (
               <div className="slots-grid">
                 {availableSlots.map((slot) => (
                   <button
@@ -452,6 +470,14 @@ export default function BookAppointment() {
         }
         .calendar-day.past { opacity: 0.4; cursor: not-allowed; }
         .slots-hint { color: var(--color-text-muted); font-size: 0.9rem; margin: 0.5rem 0; }
+        .slots-error {
+          padding: 1rem;
+          background: #fef2f2;
+          border-radius: var(--radius);
+          margin: 0.5rem 0;
+        }
+        .slots-error p { color: #dc2626; margin-bottom: 0.75rem; font-size: 0.9rem; }
+        .slots-retry-btn { font-size: 0.9rem; padding: 0.5rem 1rem; }
         .slots-grid {
           display: flex;
           flex-wrap: wrap;
